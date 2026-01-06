@@ -37,14 +37,14 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     settings = get_settings()
-    print(f"🚀 Starting {settings.app_name} v{settings.app_version}")
-    print(f"📝 Environment: {settings.app_env}")
-    print(f"🔧 Debug: {settings.debug}")
+    print(f"[*] Starting {settings.app_name} v{settings.app_version}")
+    print(f"[*] Environment: {settings.app_env}")
+    print(f"[*] Debug: {settings.debug}")
     
     yield  # Aplicación corriendo
     
     # Shutdown
-    print("👋 Shutting down...")
+    print("[*] Shutting down...")
 
 
 # ================================

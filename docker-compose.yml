@@ -17,7 +17,7 @@ services:
     container_name: pdf-export-service
     restart: unless-stopped
     ports:
-      - "${PORT:-8000}:8000"
+      - "${PORT:-8001}:8000"
     environment:
       - APP_NAME=${APP_NAME:-PDF Export Microservice}
       - APP_ENV=${APP_ENV:-development}
@@ -53,7 +53,7 @@ services:
       target: production
     container_name: pdf-export-service-dev
     ports:
-      - "${PORT:-8000}:8000"
+      - "${PORT:-8001}:8000"
     environment:
       - APP_ENV=development
       - DEBUG=true
