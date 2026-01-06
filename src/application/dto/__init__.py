@@ -17,7 +17,7 @@ from .pdf_request_dto import (
     PDFStyleDTO,
 )
 
-from .business_dtos import (
+from .negocio_global_dtos import (
     EstudianteDTO,
     UniversidadDTO,
     CarreraDTO,
@@ -28,8 +28,8 @@ from .business_dtos import (
     ContratoDTO,
 )
 
-from .receipt_dto import ComprobantePostulacionDTO
-from .agreement_dto import ComprobanteContratoDTO
+from .comprobante_postulacion_dto import ComprobantePostulacionDTO
+from .comprobante_contrato_dto import ComprobanteContratoDTO
 
 __all__ = [
     # DTOs genéricos de PDF

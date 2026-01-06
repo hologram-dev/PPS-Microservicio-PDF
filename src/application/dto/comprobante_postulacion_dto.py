@@ -1,33 +1,33 @@
 """
-Comprobante de Contrato DTO
-===========================
+Comprobante de Postulación DTO
+==============================
 
 DTO compuesto que agrupa todos los DTOs necesarios para
-generar el contrato de pasantía.
+generar el comprobante/recibo de postulación.
 
-Este es el DTO que recibe el endpoint POST /api/v1/agreement/generate
+Este es el DTO que recibe el endpoint POST /api/v1/receipt/generate
 """
 
 from dataclasses import dataclass
 
-from .business_dtos import (
+from .negocio_global_dtos import (
     EstudianteDTO,
     UniversidadDTO,
     CarreraDTO,
     EmpresaDTO,
     ProyectoDTO,
     PuestoDTO,
-    ContratoDTO,
+    PostulacionDTO,
 )
 
 
 @dataclass
-class ComprobanteContratoDTO:
+class ComprobantePostulacionDTO:
     """
-    DTO para generar el contrato de pasantía.
+    DTO para generar el comprobante/recibo de postulación.
     
     Agrupa todos los datos que llegan desde la API Golang
-    cuando el usuario solicita imprimir su contrato.
+    cuando el usuario solicita imprimir su comprobante.
     
     Request Body esperado:
     {
@@ -37,7 +37,7 @@ class ComprobanteContratoDTO:
         "empresa": { ... },
         "proyecto": { ... },
         "puesto": { ... },
-        "contrato": { ... }
+        "postulacion": { ... }
     }
     """
     estudiante: EstudianteDTO
@@ -46,4 +46,4 @@ class ComprobanteContratoDTO:
     empresa: EmpresaDTO
     proyecto: ProyectoDTO
     puesto: PuestoDTO
-    contrato: ContratoDTO
+    postulacion: PostulacionDTO

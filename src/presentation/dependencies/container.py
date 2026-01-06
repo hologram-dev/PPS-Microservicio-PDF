@@ -31,6 +31,9 @@ from functools import lru_cache
 from src.domain.interfaces import IPDFGenerator
 from src.infrastructure.pdf import ReportLabGenerator
 from src.application.use_cases import GeneratePDFUseCase
+from src.application.use_cases.generar_comprobante_postulacion import (
+    GenerarComprobantePostulacionUseCase,
+)
 
 
 @lru_cache
@@ -64,6 +67,23 @@ def get_generate_pdf_use_case() -> GeneratePDFUseCase:
     """
     generator = get_pdf_generator()
     return GeneratePDFUseCase(generator)
+
+
+@lru_cache
+def get_generar_comprobante_postulacion_use_case() -> GenerarComprobantePostulacionUseCase:
+    """
+    Obtiene la instancia del caso de uso para generar comprobante de postulación.
+    
+    Construye el grafo de dependencias:
+    - GenerarComprobantePostulacionUseCase depende de IPDFGenerator
+    - Usamos ReportLabGenerator como implementación
+    
+    Returns:
+        Instancia de GenerarComprobantePostulacionUseCase
+    """
+    generator = get_pdf_generator()
+    return GenerarComprobantePostulacionUseCase(generator)
+
 
 
 # ================================
