@@ -89,9 +89,8 @@ class PDFDocument:
 
 | Componente | Ubicación | Descripción |
 |------------|-----------|-------------|
-| **Use Cases** | `use_cases/` | Acciones del sistema (GeneratePDF) |
+| **Use Cases** | `use_cases/` | Acciones del sistema (GeneratePDF) - SON los servicios de aplicación |
 | **DTOs** | `dto/` | Objetos de transferencia de datos |
-| **Services** | `services/` | Servicios de aplicación |
 
 ```python
 # Ejemplo: Caso de uso
@@ -143,12 +142,12 @@ class ReportLabGenerator(IPDFGenerator):  # Implementa la interfaz
 # Ejemplo: Endpoint
 @router.post("/generate")
 async def generate_pdf(
-    request: PDFGenerateRequest,  # Schema Pydantic
-    service: PDFService = Depends(get_pdf_service)  # DI
+    request: PDFGenerateRequestSchema,  # Schema Pydantic
+    use_case: GeneratePDFUseCase = Depends(get_generate_pdf_use_case)  # DI
 ):
     dto = convert_to_dto(request)  # Schema → DTO
-    result = service.generate_pdf(dto)
-    return PDFGenerateResponse(...)  # DTO → Schema
+    result = use_case.execute(dto)  # Llamada directa al caso de uso
+    return PDFGenerateResponse(...)  # Result → Schema
 ```
 
 ---

@@ -23,8 +23,8 @@ from typing import BinaryIO
 from src.domain.entities import PDFDocument, PDFSection, PDFTable
 from src.domain.exceptions import InvalidDocumentError, PDFGenerationError
 from src.domain.interfaces import IPDFGenerator
-from src.domain.value_objects import PDFStyle
-from src.application.dto import PDFRequestDTO, PDFSectionDTO, PDFTableDTO
+from src.domain.value_objects import PDFStyle, ColorConfig, FontConfig, MarginConfig
+from src.application.dto import PDFRequestDTO, PDFSectionDTO, PDFTableDTO, PDFStyleDTO
 
 
 @dataclass
@@ -73,14 +73,14 @@ class GeneratePDFUseCase:
     def execute(
         self, 
         request: PDFRequestDTO,
-        style: PDFStyle | None = None,
+        style: PDFStyleDTO | PDFStyle | None = None,
     ) -> GeneratePDFResult:
         """
         Ejecuta el caso de uso.
         
         Args:
             request: DTO con los datos del PDF a generar
-            style: Estilos opcionales para el PDF
+            style: Estilos opcionales (puede ser PDFStyleDTO o PDFStyle)
             
         Returns:
             GeneratePDFResult con el PDF generado
@@ -95,8 +95,14 @@ class GeneratePDFUseCase:
         # 2. Construir el documento del dominio
         document = self._build_document(request)
         
-        # 3. Usar el estilo proporcionado o el default
-        pdf_style = style or PDFStyle.default()
+        # 3. Convertir estilo DTO a value object si es necesario
+        pdf_style: PDFStyle
+        if isinstance(style, PDFStyleDTO):
+            pdf_style = self._convert_style_dto(style)
+        elif isinstance(style, PDFStyle):
+            pdf_style = style
+        else:
+            pdf_style = PDFStyle.default()
         
         # 4. Generar el PDF usando la interfaz
         try:
@@ -121,7 +127,7 @@ class GeneratePDFUseCase:
         self,
         request: PDFRequestDTO,
         stream: BinaryIO,
-        style: PDFStyle | None = None,
+        style: PDFStyleDTO | PDFStyle | None = None,
     ) -> str:
         """
         Ejecuta el caso de uso escribiendo a un stream.
@@ -131,14 +137,22 @@ class GeneratePDFUseCase:
         Args:
             request: DTO con los datos del PDF a generar
             stream: Stream donde escribir el PDF
-            style: Estilos opcionales
+            style: Estilos opcionales (puede ser PDFStyleDTO o PDFStyle)
             
         Returns:
             El ID del documento generado
         """
         self._validate_request(request)
         document = self._build_document(request)
-        pdf_style = style or PDFStyle.default()
+        
+        # Convertir estilo DTO a value object si es necesario
+        pdf_style: PDFStyle
+        if isinstance(style, PDFStyleDTO):
+            pdf_style = self._convert_style_dto(style)
+        elif isinstance(style, PDFStyle):
+            pdf_style = style
+        else:
+            pdf_style = PDFStyle.default()
         
         try:
             self._generator.generate_to_stream(document, stream, pdf_style)
@@ -205,6 +219,50 @@ class GeneratePDFUseCase:
             rows=table_dto.rows,
             title=table_dto.title,
         )
+    
+    def _convert_style_dto(self, style_dto: PDFStyleDTO) -> PDFStyle:
+        """
+        Convierte un StyleDTO a un PDFStyle value object.
+        
+        Este método mapea los valores simples del DTO
+        a los value objects complejos del dominio.
+        
+        Args:
+            style_dto: DTO con estilos
+            
+        Returns:
+            PDFStyle value object del dominio
+        """
+        # Construir configuración de colores
+        color_kwargs = {}
+        if style_dto.primary_color:
+            color_kwargs["primary"] = style_dto.primary_color
+        if style_dto.text_color:
+            color_kwargs["text"] = style_dto.text_color
+        
+        colors = ColorConfig(**color_kwargs) if color_kwargs else ColorConfig()
+        
+        # Construir configuración de fuentes
+        font_kwargs = {}
+        if style_dto.font_size:
+            font_kwargs["size_body"] = style_dto.font_size
+        
+        fonts = FontConfig(**font_kwargs) if font_kwargs else FontConfig()
+        
+        # Construir configuración de márgenes
+        margin_kwargs = {}
+        if style_dto.margin_top is not None:
+            margin_kwargs["top"] = style_dto.margin_top
+        if style_dto.margin_bottom is not None:
+            margin_kwargs["bottom"] = style_dto.margin_bottom
+        if style_dto.margin_left is not None:
+            margin_kwargs["left"] = style_dto.margin_left
+        if style_dto.margin_right is not None:
+            margin_kwargs["right"] = style_dto.margin_right
+        
+        margins = MarginConfig(**margin_kwargs) if margin_kwargs else MarginConfig()
+        
+        return PDFStyle(colors=colors, fonts=fonts, margins=margins)
     
     def _generate_filename(self, document: PDFDocument) -> str:
         """Genera un nombre de archivo para el PDF."""

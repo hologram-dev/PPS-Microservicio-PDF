@@ -2,16 +2,44 @@
 PDF Schemas
 ===========
 
-Schemas Pydantic para validación de requests y responses de la API.
+Schemas Pydantic para validación de requests y responses de la API HTTP.
 
-Diferencia entre Schemas y DTOs:
-- Schemas: validación HTTP, viven en la capa de presentación
-- DTOs: transferencia entre capas, viven en la capa de aplicación
+IMPORTANTE: Diferencia entre Schemas y DTOs en Clean Architecture
+------------------------------------------------------------------
 
-Los schemas pueden contener:
-- Validación de formatos (regex, rangos)
-- Ejemplos para documentación
-- Descripciones para OpenAPI a
+**SCHEMAS (este archivo - Presentation Layer):**
+- Propósito: Validación HTTP y serialización de datos externos
+- Framework: Pydantic (dependiente de FastAPI)
+- Responsabilidades:
+  * Validar formato de entrada HTTP (regex, rangos, tipos)
+  * Generar documentación OpenAPI automática
+  * Serializar/deserializar JSON ↔ Python
+  * Contener ejemplos para la documentación
+- Ubicación: `presentation/schemas/`
+- Naming: Sufijo "Schema" o "Request"/"Response"
+
+**DTOs (application/dto/ - Application Layer):**
+- Propósito: Transferir datos entre capas internas
+- Framework: Dataclasses simples (independiente del framework web)
+- Responsabilidades:
+  * Transportar datos entre Presentation → Application → Domain
+  * NO contienen validaciones (ya se hicieron en Schemas)
+  * Son mapeados a/desde entidades del dominio
+- Ubicación: `application/dto/`
+- Naming: Sufijo "DTO"
+
+**Flujo de datos típico:**
+1. HTTP Request (JSON) → Schema valida y parsea
+2. Schema → DTO (mapping simple en el controlador)
+3. DTO → Caso de Uso → Entidad de Dominio
+4. Entidad → DTO → Schema Response
+5. Schema Response → HTTP Response (JSON)
+
+**¿Cuándo usar cada uno?**
+- Usa SCHEMAS para todo lo que entra/sale por HTTP
+- Usa DTOs para comunicación interna entre capas
+- NUNCA expongas DTOs directamente en endpoints HTTP
+- NUNCA pases Schemas a los casos de uso
 """
 
 from typing import Any, Literal

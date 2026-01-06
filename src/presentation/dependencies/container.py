@@ -15,17 +15,22 @@ Este archivo define las funciones que crean las dependencias.
 Ejemplo de uso en un endpoint:
     @router.post("/generate")
     async def generate_pdf(
-        request: PDFGenerateRequest,
-        service: PDFService = Depends(get_pdf_service)
+        request: PDFGenerateRequestSchema,
+        use_case: GeneratePDFUseCase = Depends(get_generate_pdf_use_case)
     ):
-        return service.generate_pdf(...)
+        result = use_case.execute(...)
+        return result
+
+NOTA: En Clean Architecture ortodoxa, NO existe una capa de "services"
+adicional. Los casos de uso (use cases) SON los servicios de aplicación.
+Los controladores/endpoints llaman directamente a los casos de uso.
 """
 
 from functools import lru_cache
 
 from src.domain.interfaces import IPDFGenerator
 from src.infrastructure.pdf import ReportLabGenerator
-from src.application.services import PDFService
+from src.application.use_cases import GeneratePDFUseCase
 
 
 @lru_cache
@@ -43,19 +48,22 @@ def get_pdf_generator() -> IPDFGenerator:
 
 
 @lru_cache
-def get_pdf_service() -> PDFService:
+def get_generate_pdf_use_case() -> GeneratePDFUseCase:
     """
-    Obtiene la instancia del servicio de PDF.
+    Obtiene la instancia del caso de uso GeneratePDF.
     
     Construye el grafo de dependencias:
-    - PDFService depende de IPDFGenerator
+    - GeneratePDFUseCase depende de IPDFGenerator
     - Usamos ReportLabGenerator como implementación
     
+    En Clean Architecture, los casos de uso son la capa de servicios
+    de aplicación. No necesitamos una capa de "services" adicional.
+    
     Returns:
-        Instancia de PDFService
+        Instancia de GeneratePDFUseCase
     """
     generator = get_pdf_generator()
-    return PDFService(generator)
+    return GeneratePDFUseCase(generator)
 
 
 # ================================
