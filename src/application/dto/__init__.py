@@ -17,9 +17,36 @@ from .pdf_request_dto import (
     PDFStyleDTO,
 )
 
+from .business_dtos import (
+    EstudianteDTO,
+    UniversidadDTO,
+    CarreraDTO,
+    EmpresaDTO,
+    ProyectoDTO,
+    PuestoDTO,
+    PostulacionDTO,
+    ContratoDTO,
+)
+
+from .receipt_dto import ComprobantePostulacionDTO
+from .agreement_dto import ComprobanteContratoDTO
+
 __all__ = [
+    # DTOs genéricos de PDF
     "PDFRequestDTO",
     "PDFSectionDTO",
     "PDFTableDTO",
     "PDFStyleDTO",
+    # DTOs de negocio (entidades de Golang)
+    "EstudianteDTO",
+    "UniversidadDTO",
+    "CarreraDTO",
+    "EmpresaDTO",
+    "ProyectoDTO",
+    "PuestoDTO",
+    "PostulacionDTO",
+    "ContratoDTO",
+    # DTOs compuestos para endpoints
+    "ComprobantePostulacionDTO",
+    "ComprobanteContratoDTO",
 ]
