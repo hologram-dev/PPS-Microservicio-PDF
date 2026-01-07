@@ -87,12 +87,14 @@ async def generar_comprobante_postulacion(
         StreamingResponse con el PDF generado
     """
     # 1. Convertir schemas Pydantic → DTOs de aplicación
+    # Solo pasamos campos requeridos explícitamente
+    # Los campos opcionales usan los defaults de los DTOs
     comprobante_dto = ComprobantePostulacionDTO(
         estudiante=EstudianteDTO(
             nombre=request.estudiante.nombre,
             apellido=request.estudiante.apellido,
-            email=request.estudiante.email,
             dni=request.estudiante.dni,
+            email=request.estudiante.email,
             cuil=request.estudiante.cuil,
             fecha_nacimiento=request.estudiante.fecha_nacimiento,
             tipo_dni=request.estudiante.tipo_dni,
@@ -119,10 +121,10 @@ async def generar_comprobante_postulacion(
         ),
         proyecto=ProyectoDTO(
             nombre=request.proyecto.nombre,
+            fecha_inicio=request.proyecto.fecha_inicio,
             descripcion=request.proyecto.descripcion,
             numero=request.proyecto.numero,
             estado=request.proyecto.estado,
-            fecha_inicio=request.proyecto.fecha_inicio,
             fecha_fin=request.proyecto.fecha_fin,
         ),
         puesto=PuestoDTO(
@@ -134,9 +136,9 @@ async def generar_comprobante_postulacion(
         postulacion=PostulacionDTO(
             numero=request.postulacion.numero,
             fecha=request.postulacion.fecha,
-            estado=request.postulacion.estado,
             cantidad_materias_aprobadas=request.postulacion.cantidad_materias_aprobadas,
             cantidad_materias_regulares=request.postulacion.cantidad_materias_regulares,
+            estado=request.postulacion.estado,
         ),
     )
     

@@ -18,13 +18,17 @@ from pydantic import BaseModel, Field, field_validator, EmailStr
 
 
 class EstudianteSchema(BaseModel):
-    """Schema para validación de datos del estudiante."""
+    """Schema para validación de datos del estudiante.
+    
+    Campos requeridos: nombre, apellido, dni
+    Campos opcionales: email, cuil, fecha_nacimiento, tipo_dni
+    """
     
     nombre: str = Field(..., min_length=1, max_length=100, description="Nombre del estudiante")
     apellido: str = Field(..., min_length=1, max_length=100, description="Apellido del estudiante")
-    email: EmailStr = Field(..., description="Email del estudiante")
     dni: str = Field(..., min_length=7, max_length=10, description="DNI del estudiante")
-    cuil: str = Field(..., pattern=r"^\d{2}-\d{7,8}-\d{1}$", description="CUIL en formato XX-XXXXXXXX-X")
+    email: Optional[EmailStr] = Field(default=None, description="Email del estudiante")
+    cuil: Optional[str] = Field(default=None, pattern=r"^\d{2}-\d{7,8}-\d{1}$", description="CUIL en formato XX-XXXXXXXX-X")
     fecha_nacimiento: Optional[str] = Field(default=None, description="Fecha de nacimiento en formato ISO (YYYY-MM-DD)")
     tipo_dni: str = Field(default="DNI", max_length=20, description="Tipo de documento")
     
@@ -44,11 +48,15 @@ class EstudianteSchema(BaseModel):
 
 
 class UniversidadSchema(BaseModel):
-    """Schema para validación de datos de la universidad."""
+    """Schema para validación de datos de la universidad.
+    
+    Campos requeridos: nombre, direccion
+    Campos opcionales: codigo_postal, correo, telefono
+    """
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre de la universidad")
     direccion: str = Field(..., min_length=1, max_length=300, description="Dirección de la universidad")
-    codigo_postal: int = Field(..., ge=1000, le=9999, description="Código postal")
+    codigo_postal: Optional[int] = Field(default=None, ge=1000, le=9999, description="Código postal")
     correo: Optional[str] = Field(default=None, description="Email de contacto de la universidad")
     telefono: Optional[str] = Field(default=None, max_length=14, description="Teléfono de contacto")
     
@@ -64,32 +72,44 @@ class UniversidadSchema(BaseModel):
 
 
 class CarreraSchema(BaseModel):
-    """Schema para validación de datos de la carrera."""
+    """Schema para validación de datos de la carrera.
+    
+    Campos requeridos: nombre
+    Campos opcionales: codigo, descripcion, plan_estudios
+    """
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre de la carrera")
-    codigo: str = Field(..., min_length=1, max_length=50, description="Código de la carrera")
+    codigo: Optional[str] = Field(default=None, min_length=1, max_length=50, description="Código de la carrera")
     descripcion: Optional[str] = Field(default=None, max_length=100, description="Descripción de la carrera")
     plan_estudios: Optional[str] = Field(default=None, max_length=100, description="Plan de estudios")
 
 
 class EmpresaSchema(BaseModel):
-    """Schema para validación de datos de la empresa."""
+    """Schema para validación de datos de la empresa.
+    
+    Campos requeridos: nombre
+    Campos opcionales: direccion, codigo_postal, telefono, codigo
+    """
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre de la empresa")
-    direccion: str = Field(..., min_length=1, max_length=300, description="Dirección de la empresa")
-    codigo_postal: int = Field(..., ge=1000, le=9999, description="Código postal")
+    direccion: Optional[str] = Field(default=None, min_length=1, max_length=300, description="Dirección de la empresa")
+    codigo_postal: Optional[int] = Field(default=None, ge=1000, le=9999, description="Código postal")
     telefono: Optional[str] = Field(default=None, max_length=50, description="Teléfono de contacto")
     codigo: Optional[int] = Field(default=None, ge=1, description="Código identificador de la empresa")
 
 
 class ProyectoSchema(BaseModel):
-    """Schema para validación de datos del proyecto."""
+    """Schema para validación de datos del proyecto.
+    
+    Campos requeridos: nombre, fecha_inicio
+    Campos opcionales: descripcion, numero, estado, fecha_fin
+    """
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre del proyecto")
-    descripcion: str = Field(..., min_length=1, max_length=1000, description="Descripción del proyecto")
-    numero: int = Field(..., ge=1, description="Número identificador del proyecto")
-    estado: Optional[str] = Field(default=None, max_length=50, description="Estado del proyecto")
     fecha_inicio: Optional[str] = Field(default=None, description="Fecha de inicio en formato ISO")
+    descripcion: Optional[str] = Field(default=None, min_length=1, max_length=1000, description="Descripción del proyecto")
+    numero: Optional[int] = Field(default=None, ge=1, description="Número identificador del proyecto")
+    estado: Optional[str] = Field(default=None, max_length=50, description="Estado del proyecto")
     fecha_fin: Optional[str] = Field(default=None, description="Fecha de fin en formato ISO")
     
     @field_validator("fecha_inicio", "fecha_fin")
@@ -106,22 +126,30 @@ class ProyectoSchema(BaseModel):
 
 
 class PuestoSchema(BaseModel):
-    """Schema para validación de datos del puesto."""
+    """Schema para validación de datos del puesto.
+    
+    Campos requeridos: nombre
+    Campos opcionales: descripcion, codigo, horas_dedicadas
+    """
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre del puesto")
-    descripcion: str = Field(..., min_length=1, max_length=1000, description="Descripción del puesto")
+    descripcion: Optional[str] = Field(default=None, min_length=1, max_length=1000, description="Descripción del puesto")
     codigo: Optional[int] = Field(default=None, ge=1, description="Código identificador del puesto")
     horas_dedicadas: float = Field(default=0.0, ge=0.0, le=168.0, description="Horas semanales dedicadas")
 
 
 class PostulacionSchema(BaseModel):
-    """Schema para validación de datos de la postulación."""
+    """Schema para validación de datos de la postulación.
+    
+    Campos requeridos: numero, fecha, cantidad_materias_aprobadas, cantidad_materias_regulares
+    Campos opcionales: estado
+    """
     
     numero: int = Field(..., ge=1, description="Número identificador de la postulación")
     fecha: str = Field(..., description="Fecha y hora de la postulación en formato ISO")
-    estado: str = Field(..., min_length=1, max_length=50, description="Estado de la postulación")
-    cantidad_materias_aprobadas: int = Field(default=0, ge=0, description="Cantidad de materias aprobadas")
-    cantidad_materias_regulares: int = Field(default=0, ge=0, description="Cantidad de materias regulares")
+    cantidad_materias_aprobadas: int = Field(..., ge=0, description="Cantidad de materias aprobadas")
+    cantidad_materias_regulares: int = Field(..., ge=0, description="Cantidad de materias regulares")
+    estado: str = Field(default="Pendiente", min_length=1, max_length=50, description="Estado de la postulación")
     
     @field_validator("fecha")
     @classmethod

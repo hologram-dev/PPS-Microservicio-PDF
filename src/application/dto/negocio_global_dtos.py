@@ -30,13 +30,14 @@ class EstudianteDTO:
     """
     DTO con los datos del estudiante.
     
-    Mapea desde la entidad Estudiante de Golang.
+    Campos requeridos: nombre, apellido, dni
+    Campos opcionales: email, cuil, fecha_nacimiento, tipo_dni
     """
     nombre: str
     apellido: str
-    email: str
     dni: str
-    cuil: str
+    email: Optional[str] = None
+    cuil: Optional[str] = None
     fecha_nacimiento: Optional[str] = None  # ISO format
     tipo_dni: str = "DNI"
 
@@ -46,11 +47,12 @@ class UniversidadDTO:
     """
     DTO con los datos de la universidad.
     
-    Mapea desde la entidad Universidad de Golang.
+    Campos requeridos: nombre, direccion
+    Campos opcionales: codigo_postal, correo, telefono
     """
     nombre: str
     direccion: str
-    codigo_postal: int
+    codigo_postal: Optional[int] = None
     correo: Optional[str] = None
     telefono: Optional[str] = None
 
@@ -60,10 +62,11 @@ class CarreraDTO:
     """
     DTO con los datos de la carrera.
     
-    Mapea desde la entidad Carrera de Golang.
+    Campos requeridos: nombre
+    Campos opcionales: codigo, descripcion, plan_estudios
     """
     nombre: str
-    codigo: str
+    codigo: Optional[str] = None
     descripcion: Optional[str] = None
     plan_estudios: Optional[str] = None
 
@@ -73,11 +76,12 @@ class EmpresaDTO:
     """
     DTO con los datos de la empresa.
     
-    Mapea desde la entidad Empresa de Golang.
+    Campos requeridos: nombre
+    Campos opcionales: direccion, codigo_postal, telefono, codigo
     """
     nombre: str
-    direccion: str
-    codigo_postal: int
+    direccion: Optional[str] = None
+    codigo_postal: Optional[int] = None
     telefono: Optional[str] = None
     codigo: Optional[int] = None
 
@@ -87,13 +91,14 @@ class ProyectoDTO:
     """
     DTO con los datos del proyecto de pasantía.
     
-    Mapea desde la entidad Proyecto de Golang.
+    Campos requeridos: nombre, fecha_inicio
+    Campos opcionales: descripcion, numero, estado, fecha_fin
     """
     nombre: str
-    descripcion: str
-    numero: int
-    estado: Optional[str] = None
     fecha_inicio: Optional[str] = None  # ISO format
+    descripcion: Optional[str] = None
+    numero: Optional[int] = None
+    estado: Optional[str] = None
     fecha_fin: Optional[str] = None  # ISO format
 
 
@@ -102,10 +107,11 @@ class PuestoDTO:
     """
     DTO con los datos del puesto.
     
-    Mapea desde la entidad Puesto de Golang.
+    Campos requeridos: nombre
+    Campos opcionales: descripcion, codigo, horas_dedicadas
     """
     nombre: str
-    descripcion: str
+    descripcion: Optional[str] = None
     codigo: Optional[int] = None
     horas_dedicadas: float = 0.0
 
@@ -115,13 +121,14 @@ class PostulacionDTO:
     """
     DTO con los datos de la postulación.
     
-    Mapea desde la entidad Postulacion de Golang.
+    Campos requeridos: numero, fecha, cantidad_materias_aprobadas, cantidad_materias_regulares
+    Campos opcionales: estado
     """
     numero: int
     fecha: str  # ISO format datetime
-    estado: str
-    cantidad_materias_aprobadas: int = 0
-    cantidad_materias_regulares: int = 0
+    cantidad_materias_aprobadas: int
+    cantidad_materias_regulares: int
+    estado: str = "Pendiente"
 
 
 @dataclass

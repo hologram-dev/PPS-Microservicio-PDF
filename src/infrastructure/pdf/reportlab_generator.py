@@ -206,28 +206,49 @@ class ReportLabGenerator(IPDFGenerator):
         primary_rgb = style.colors.to_rgb("primary")
         text_rgb = style.colors.to_rgb("text")
         
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+        
         return {
             "title": ParagraphStyle(
                 "CustomTitle",
                 parent=base_styles["Heading1"],
-                fontSize=style.fonts.size_title,
+                fontSize=18,
                 textColor=colors.Color(*primary_rgb),
-                spaceAfter=12,
+                alignment=TA_CENTER,
+                spaceAfter=6,
             ),
             "heading": ParagraphStyle(
                 "CustomHeading",
                 parent=base_styles["Heading2"],
-                fontSize=style.fonts.size_heading,
+                fontSize=12,
                 textColor=colors.Color(*primary_rgb),
+                alignment=TA_CENTER,
                 spaceBefore=12,
                 spaceAfter=6,
             ),
             "body": ParagraphStyle(
                 "CustomBody",
                 parent=base_styles["Normal"],
-                fontSize=style.fonts.size_body,
+                fontSize=10,
                 textColor=colors.Color(*text_rgb),
-                leading=style.fonts.size_body * style.fonts.line_height,
+                leading=14,
+                alignment=TA_LEFT,
+            ),
+            "subtitle": ParagraphStyle(
+                "Subtitle",
+                parent=base_styles["Normal"],
+                fontSize=10,
+                textColor=colors.grey,
+                alignment=TA_CENTER,
+                spaceAfter=12,
+            ),
+            "footer": ParagraphStyle(
+                "Footer",
+                parent=base_styles["Normal"],
+                fontSize=9,
+                textColor=colors.grey,
+                alignment=TA_RIGHT,
+                leading=11,
             ),
         }
     
@@ -235,17 +256,35 @@ class ReportLabGenerator(IPDFGenerator):
         """Construye los elementos de una sección."""
         elements = []
         
-        # Título de la sección
-        heading = Paragraph(section.title, styles["heading"])
-        elements.append(heading)
+        # Título de la sección según nivel
+        if section.title:
+            if section.level == 1:
+                # Nivel 1: Título principal (centrado)
+                heading = Paragraph(section.title, styles["title"])
+            elif section.level == 3:
+                # Nivel 3: Footer (alineado a derecha)
+                heading = Paragraph(section.title, styles["footer"])
+            else:
+                # Nivel 2: Subtítulos
+                heading = Paragraph(section.title, styles["heading"])
+            elements.append(heading)
         
         # Contenido de texto
         if section.content:
+            # Detectar si es contenido de footer/firma por nivel
+            if section.level == 3:
+                style_to_use = styles["footer"]
+            elif section.level == 1 and not section.title:
+                # Contenido sin título en nivel 1 = subtítulo
+                style_to_use = styles["subtitle"]
+            else:
+                style_to_use = styles["body"]
+            
             # Dividir en párrafos
             paragraphs = section.content.split("\n\n")
             for para_text in paragraphs:
                 if para_text.strip():
-                    para = Paragraph(para_text.strip(), styles["body"])
+                    para = Paragraph(para_text.strip(), style_to_use)
                     elements.append(para)
                     elements.append(Spacer(1, 6))
         
@@ -260,6 +299,8 @@ class ReportLabGenerator(IPDFGenerator):
     
     def _build_table(self, table: PDFTable, styles: dict) -> list:
         """Construye una tabla de ReportLab."""
+        from reportlab.lib.units import mm
+        
         elements = []
         
         # Título de la tabla
@@ -271,33 +312,27 @@ class ReportLabGenerator(IPDFGenerator):
         # Datos de la tabla
         data = [table.headers] + table.rows
         
-        # Crear la tabla
-        reportlab_table = Table(data)
+        # Crear la tabla con anchos personalizados
+        # 55mm para primera columna, 110mm para segunda
+        col_widths = [55*mm, 110*mm] if len(table.headers) == 2 else None
+        reportlab_table = Table(data, colWidths=col_widths, hAlign='LEFT')
         
         # Aplicar estilos a la tabla
         table_style = TableStyle([
             # Encabezado
-            ("BACKGROUND", (0, 0), (-1, 0), colors.Color(0.2, 0.2, 0.2)),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 10),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-            ("TOPPADDING", (0, 0), (-1, 0), 8),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
+            ("BOX", (0, 0), (-1, -1), 0.6, colors.grey),
+            ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.lightgrey),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
             
-            # Cuerpo
-            ("BACKGROUND", (0, 1), (-1, -1), colors.white),
-            ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
-            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 1), (-1, -1), 9),
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-            ("TOPPADDING", (0, 1), (-1, -1), 6),
-            
-            # Bordes
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            
-            # Filas alternadas
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.Color(0.95, 0.95, 0.95)]),
+            # Alineación: primera columna izquierda, resto izquierda también
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
         ])
         
         reportlab_table.setStyle(table_style)

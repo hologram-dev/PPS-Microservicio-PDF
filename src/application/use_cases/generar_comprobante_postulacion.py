@@ -179,7 +179,7 @@ class GenerarComprobantePostulacionUseCase:
             )
     
     def _build_document(self, comprobante: ComprobantePostulacionDTO) -> PDFDocument:
-        """Construye el PDFDocument con la estructura del comprobante."""
+        """Construye el PDFDocument con estructura narrativa profesional."""
         document = PDFDocument(
             title=f"Comprobante de Postulación N° {comprobante.postulacion.numero}",
             author="Sistema de Pasantías",
@@ -192,173 +192,153 @@ class GenerarComprobantePostulacionUseCase:
             },
         )
         
-        # Sección 1: Datos del Estudiante
-        document.add_section(self._build_seccion_estudiante(comprobante))
+        # 1. Sección Header - Universidad
+        document.add_section(self._build_header_universidad(comprobante))
         
-        # Sección 2: Datos Académicos (Universidad y Carrera)
-        document.add_section(self._build_seccion_academica(comprobante))
+        # 2. Sección Principal - Tabla compacta con datos clave
+        document.add_section(self._build_tabla_datos_clave(comprobante))
         
-        # Sección 3: Datos de la Postulación (Empresa, Proyecto, Puesto)
-        document.add_section(self._build_seccion_postulacion_detalles(comprobante))
+        # 3. Sección Narrativa - Mensaje descriptivo
+        document.add_section(self._build_mensaje_narrativo(comprobante))
         
-        # Sección 4: Estado de la Postulación
-        document.add_section(self._build_seccion_estado(comprobante))
+        # 4. Sección de Firma y Footer
+        document.add_section(self._build_seccion_firma(comprobante))
         
         return document
     
-    def _build_seccion_estudiante(
+    def _build_header_universidad(
         self, 
         comprobante: ComprobantePostulacionDTO
     ) -> PDFSection:
-        """Construye la sección con datos del estudiante."""
-        est = comprobante.estudiante
-        
-        section = PDFSection(
-            title="Datos del Estudiante",
-            level=1,
-        )
-        
-        # Tabla con datos del estudiante
-        tabla = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Nombre Completo", f"{est.apellido}, {est.nombre}"],
-                ["DNI", est.dni],
-                ["CUIL", est.cuil],
-                ["Tipo de Documento", est.tipo_dni],
-                ["Email", est.email],
-                ["Fecha de Nacimiento", est.fecha_nacimiento or "No especificada"],
-            ],
-            title="Información Personal",
-        )
-        
-        section.elements.append(tabla)
-        return section
-    
-    def _build_seccion_academica(
-        self, 
-        comprobante: ComprobantePostulacionDTO
-    ) -> PDFSection:
-        """Construye la sección con datos académicos."""
+        """Construye el header con nombre y dirección de la universidad."""
         univ = comprobante.universidad
-        carr = comprobante.carrera
         
-        section = PDFSection(
-            title="Datos Académicos",
+        return PDFSection(
+            title=univ.nombre,
+            content=univ.direccion,
             level=1,
         )
-        
-        # Tabla con datos de la universidad
-        tabla_universidad = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Universidad", univ.nombre],
-                ["Dirección", univ.direccion],
-                ["Código Postal", str(univ.codigo_postal)],
-                ["Email", univ.correo or "No especificado"],
-                ["Teléfono", univ.telefono or "No especificado"],
-            ],
-            title="Institución Educativa",
-        )
-        
-        # Tabla con datos de la carrera
-        tabla_carrera = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Carrera", carr.nombre],
-                ["Código", carr.codigo],
-                ["Descripción", carr.descripcion or "No especificada"],
-                ["Plan de Estudios", carr.plan_estudios or "No especificado"],
-            ],
-            title="Carrera",
-        )
-        
-        section.elements.append(tabla_universidad)
-        section.elements.append(tabla_carrera)
-        return section
     
-    def _build_seccion_postulacion_detalles(
+    def _build_tabla_datos_clave(
         self, 
         comprobante: ComprobantePostulacionDTO
     ) -> PDFSection:
-        """Construye la sección con detalles de la postulación."""
+        """Construye tabla compacta con los datos clave del comprobante."""
+        from src.application.utils.date_utils import parse_iso_to_spanish_argentina
+        
+        est = comprobante.estudiante
+        carr = comprobante.carrera
         emp = comprobante.empresa
         proy = comprobante.proyecto
         puesto = comprobante.puesto
+        post = comprobante.postulacion
         
-        section = PDFSection(
-            title="Detalles de la Postulación",
+        # Formatear fecha de inicio del proyecto
+        fecha_inicio = parse_iso_to_spanish_argentina(proy.fecha_inicio) or "No especificada"
+        
+        # Construir filas de la tabla
+        rows = [
+            ["Estudiante", f"{est.nombre} {est.apellido}"],
+            ["DNI", est.dni],
+            ["Carrera", carr.nombre],
+            ["Empresa", emp.nombre],
+            ["Puesto", puesto.nombre],
+            ["Proyecto", f"{proy.nombre} (inicio: {fecha_inicio})"],
+            ["Materias aprobadas", str(post.cantidad_materias_aprobadas)],
+            ["Materias en condición regular", str(post.cantidad_materias_regulares)],
+        ]
+        
+        # Crear tabla
+        tabla = PDFTable(
+            headers=["Campo", "Información"],
+            rows=rows,
+            title=None,  # Sin título, solo la tabla
+        )
+        
+        # Formatear número y fecha de postulación
+        fecha_post = parse_iso_to_spanish_argentina(post.fecha)
+        
+        return PDFSection(
+            title=f"COMPROBANTE DE POSTULACIÓN N° {post.numero}",
+            content=f"Fecha de postulación: {fecha_post}",
             level=1,
+            elements=[tabla],
         )
-        
-        # Tabla con datos de la empresa
-        tabla_empresa = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Empresa", emp.nombre],
-                ["Código Empresa", str(emp.codigo) if emp.codigo else "No especificado"],
-                ["Dirección", emp.direccion],
-                ["Código Postal", str(emp.codigo_postal)],
-                ["Teléfono", emp.telefono or "No especificado"],
-            ],
-            title="Empresa Oferente",
-        )
-        
-        # Tabla con datos del proyecto
-        tabla_proyecto = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Proyecto", proy.nombre],
-                ["Número", str(proy.numero)],
-                ["Descripción", proy.descripcion],
-                ["Estado", proy.estado or "No especificado"],
-                ["Fecha Inicio", proy.fecha_inicio or "No especificada"],
-                ["Fecha Fin", proy.fecha_fin or "No especificada"],
-            ],
-            title="Proyecto de Pasantía",
-        )
-        
-        # Tabla con datos del puesto
-        tabla_puesto = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Puesto", puesto.nombre],
-                ["Código", str(puesto.codigo) if puesto.codigo else "No especificado"],
-                ["Descripción", puesto.descripcion],
-                ["Horas Semanales", f"{puesto.horas_dedicadas} hs"],
-            ],
-            title="Puesto Solicitado",
-        )
-        
-        section.elements.append(tabla_empresa)
-        section.elements.append(tabla_proyecto)
-        section.elements.append(tabla_puesto)
-        return section
     
-    def _build_seccion_estado(
+    def _build_mensaje_narrativo(
         self, 
         comprobante: ComprobantePostulacionDTO
     ) -> PDFSection:
-        """Construye la sección con el estado de la postulación."""
+        """Construye el mensaje narrativo explicando la postulación."""
+        from src.application.utils.date_utils import parse_iso_to_spanish_argentina
+        
+        est = comprobante.estudiante
+        univ = comprobante.universidad
+        carr = comprobante.carrera
+        emp = comprobante.empresa
+        proy = comprobante.proyecto
+        puesto = comprobante.puesto
         post = comprobante.postulacion
         
-        section = PDFSection(
-            title="Estado de la Postulación",
-            level=1,
+        # Formatear fechas
+        fecha_postulacion = parse_iso_to_spanish_argentina(post.fecha)
+        fecha_inicio = parse_iso_to_spanish_argentina(proy.fecha_inicio)
+        
+        # Construir nombre completo
+        nombre_completo = f"{est.nombre} {est.apellido}"
+        
+        # Construir mensaje principal
+        mensaje = (
+            f"Por medio del presente se certifica que <b>{nombre_completo}</b>, "
+            f"alumno/a de <b>{carr.nombre}</b> de la institución <b>{univ.nombre}</b>, "
+            f"con DNI <b>{est.dni}</b>, se postuló para el proyecto "
+            f"<b>\"{proy.nombre}\"</b> ofrecido por <b>{emp.nombre}</b> "
+            f"para el puesto de <b>{puesto.nombre}</b>."
         )
         
-        # Tabla con estado de la postulación
-        tabla = PDFTable(
-            headers=["Campo", "Valor"],
-            rows=[
-                ["Número de Postulación", str(post.numero)],
-                ["Fecha de Postulación", post.fecha],
-                ["Estado", post.estado],
-                ["Materias Aprobadas", str(post.cantidad_materias_aprobadas)],
-                ["Materias Regulares", str(post.cantidad_materias_regulares)],
-            ],
-            title="Información de la Postulación",
+        # Agregar fecha de inicio si está disponible
+        if fecha_inicio:
+            mensaje += f" El proyecto tiene fecha de inicio estimada: <b>{fecha_inicio}</b>."
+        
+        # Agregar información académica y de registro
+        mensaje += (
+            f"\n\n"
+            f"Al momento de la postulación, el/la estudiante registra "
+            f"<b>{post.cantidad_materias_aprobadas} materias aprobadas</b> y "
+            f"<b>{post.cantidad_materias_regulares} materias en condición regular</b>. "
+            f"Esta postulación queda registrada bajo el número <b>{post.numero}</b>"
         )
         
-        section.elements.append(tabla)
-        return section
+        if fecha_postulacion:
+            mensaje += f" y fue realizada el <b>{fecha_postulacion}</b>."
+        else:
+            mensaje += "."
+        
+        return PDFSection(
+            title="",  # Sin título para que fluya con el documento
+            content=mensaje,
+            level=2,
+        )
+    
+    def _build_seccion_firma(
+        self, 
+        comprobante: ComprobantePostulacionDTO
+    ) -> PDFSection:
+        """Construye la sección de firma y footer con información de contacto."""
+        univ = comprobante.universidad
+        
+        # Construir contenido de firma y footer
+        contenido = (
+            "\n\n"
+            "__________________________________\n"
+            "Firma del responsable académico / Empresa\n\n"
+            f"Contacto: oficina de prácticas - {univ.nombre}\n\n"
+            "Este comprobante es emitido electrónicamente y puede ser "
+            "impreso para presentar en la empresa."
+        )
+        
+        return PDFSection(
+            title="",  # Sin título
+            content=contenido,
+            level=3,
+        )
