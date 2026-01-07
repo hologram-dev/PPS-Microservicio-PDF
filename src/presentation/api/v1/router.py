@@ -27,7 +27,7 @@ from src.presentation.dependencies.container import (
     get_generar_comprobante_postulacion_use_case,
 )
 from src.application.dto import (
-    ComprobantePostulacionDTO,
+    ComprobantePostulacionDTO, ComprobanteContratoDTO,
     EstudianteDTO,
     UniversidadDTO,
     CarreraDTO,
