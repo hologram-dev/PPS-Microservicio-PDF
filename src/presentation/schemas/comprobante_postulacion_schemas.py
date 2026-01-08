@@ -58,7 +58,7 @@ class UniversidadSchema(BaseModel):
     direccion: str = Field(..., min_length=1, max_length=300, description="Dirección de la universidad")
     codigo_postal: Optional[int] = Field(default=None, ge=1000, le=9999, description="Código postal")
     correo: Optional[str] = Field(default=None, description="Email de contacto de la universidad")
-    telefono: Optional[str] = Field(default=None, max_length=14, description="Teléfono de contacto")
+    telefono: Optional[str] = Field(default=None, max_length=18, description="Teléfono de contacto")
     
     @field_validator("correo")
     @classmethod

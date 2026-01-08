@@ -35,7 +35,7 @@ class UniversidadSchema(BaseModel):
     direccion: Optional[str] = Field(default=None, min_length=1, max_length=300, description="Dirección de la universidad")
     codigo_postal: Optional[str] = Field(default=None, min_length=1, max_length=10, description="Código postal de la universidad")
     correo: str = Field(..., description="Correo de la universidad")
-    telefono: str = Field(..., description="Teléfono de la universidad")
+    telefono: str = Field(..., max_length=18, description="Teléfono de la universidad")
     
 
 class CarreraSchema(BaseModel):
@@ -53,7 +53,8 @@ class EmpresaSchema(BaseModel):
     direccion: Optional[str] = Field(default=None, min_length=1, max_length=300, description="Dirección de la empresa")
     codigo_postal: Optional[str] = Field(default=None, min_length=1, max_length=10, description="Código postal de la empresa")
     correo: str = Field(..., description="Correo de la empresa")
-    telefono: str = Field(..., description="Teléfono de la empresa")
+    telefono: str = Field(..., max_length=18, description="Teléfono de la empresa")
+    codigo: Optional[int] = Field(default=None, description="Código de la empresa")
 
 
 class ProyectoSchema(BaseModel):
@@ -81,7 +82,7 @@ class ProyectoSchema(BaseModel):
 
     @field_validator("fecha_fin")
     @classmethod
-    def validate_fecha(cls, v: Optional[str]) -> Optional[str]:
+    def validate_fecha_fin(cls, v: Optional[str]) -> Optional[str]:
         """Valida que las fechas estén en formato ISO válido."""
         if v is None:
             return v

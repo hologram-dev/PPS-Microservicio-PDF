@@ -17,6 +17,7 @@ from .negocio_global_dtos import (
     EmpresaDTO,
     ProyectoDTO,
     PuestoDTO,
+    PostulacionDTO,
     ContratoDTO,
 )
 
@@ -37,6 +38,7 @@ class ComprobanteContratoDTO:
         "empresa": { ... },
         "proyecto": { ... },
         "puesto": { ... },
+        "postulacion": { ... },
         "contrato": { ... }
     }
     """
@@ -46,4 +48,5 @@ class ComprobanteContratoDTO:
     empresa: EmpresaDTO
     proyecto: ProyectoDTO
     puesto: PuestoDTO
+    postulacion: PostulacionDTO
     contrato: ContratoDTO

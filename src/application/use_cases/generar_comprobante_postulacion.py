@@ -180,6 +180,12 @@ class GenerarComprobantePostulacionUseCase:
     
     def _build_document(self, comprobante: ComprobantePostulacionDTO) -> PDFDocument:
         """Construye el PDFDocument con estructura narrativa profesional."""
+        import os
+        
+        # Obtener ruta del logo
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logo_path = os.path.join(base_dir, "utils", "images", "logoUTN.png")
+        
         document = PDFDocument(
             title=f"Comprobante de Postulación N° {comprobante.postulacion.numero}",
             author="Sistema de Pasantías",
@@ -189,6 +195,8 @@ class GenerarComprobantePostulacionUseCase:
                 "numero_postulacion": comprobante.postulacion.numero,
                 "tipo_documento": "comprobante_postulacion",
                 "estudiante_dni": comprobante.estudiante.dni,
+                "logo_path": logo_path if os.path.exists(logo_path) else None,
+                "universidad_nombre": comprobante.universidad.nombre,
             },
         )
         
@@ -210,12 +218,11 @@ class GenerarComprobantePostulacionUseCase:
         self, 
         comprobante: ComprobantePostulacionDTO
     ) -> PDFSection:
-        """Construye el header con nombre y dirección de la universidad."""
+        """Construye el header con nombre de la universidad."""
         univ = comprobante.universidad
         
         return PDFSection(
-            title=univ.nombre,
-            content=univ.direccion,
+            title=univ.nombre, # borre la direccion
             level=1,
         )
     
@@ -332,7 +339,6 @@ class GenerarComprobantePostulacionUseCase:
             "\n\n"
             "__________________________________\n"
             "Firma del responsable académico / Empresa\n\n"
-            f"Contacto: oficina de prácticas - {univ.nombre}\n\n"
             "Este comprobante es emitido electrónicamente y puede ser "
             "impreso para presentar en la empresa."
         )

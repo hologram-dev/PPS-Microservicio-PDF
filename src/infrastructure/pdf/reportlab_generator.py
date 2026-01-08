@@ -136,14 +136,21 @@ class ReportLabGenerator(IPDFGenerator):
             # Obtener tamaño de página
             page_size = self._get_page_size(document)
             
+            # Márgenes profesionales más amplios
+            from reportlab.lib.units import mm
+            top_margin = 32 * mm  # Mayor espacio para header con logo
+            bottom_margin = 22 * mm
+            left_margin = 22 * mm
+            right_margin = 22 * mm
+            
             # Crear el documento de ReportLab
             doc = SimpleDocTemplate(
                 stream,
                 pagesize=page_size,
-                topMargin=style.margins.top,
-                bottomMargin=style.margins.bottom,
-                leftMargin=style.margins.left,
-                rightMargin=style.margins.right,
+                topMargin=top_margin,
+                bottomMargin=bottom_margin,
+                leftMargin=left_margin,
+                rightMargin=right_margin,
                 title=document.title,
                 author=document.author,
             )
@@ -151,8 +158,25 @@ class ReportLabGenerator(IPDFGenerator):
             # Construir los elementos del documento
             elements = self._build_elements(document, style)
             
-            # Generar el PDF
-            doc.build(elements)
+            # Detectar si hay logo en metadata para usar callbacks de header/footer
+            logo_path = document.metadata.get("logo_path")
+            universidad_nombre = document.metadata.get("universidad_nombre")
+            
+            # Generar el PDF (con o sin header/footer personalizado)
+            if logo_path and universidad_nombre:
+                # Usar callbacks para header/footer con logo
+                doc.build(
+                    elements,
+                    onFirstPage=lambda c, d: self._draw_header_footer(
+                        c, d, logo_path, universidad_nombre
+                    ),
+                    onLaterPages=lambda c, d: self._draw_header_footer(
+                        c, d, logo_path, universidad_nombre
+                    ),
+                )
+            else:
+                # Sin header/footer personalizado
+                doc.build(elements)
             
         except Exception as e:
             raise PDFGenerationError(
@@ -196,9 +220,9 @@ class ReportLabGenerator(IPDFGenerator):
     
     def _create_styles(self, style: PDFStyle) -> dict:
         """
-        Crea los estilos de Paragraph basados en los estilos del dominio.
+        Crea los estilos de Paragraph con tipografía profesional.
         
-        Mapea los value objects del dominio a estilos de ReportLab.
+        Usa Times-Roman/Times-Bold para un look más formal y profesional.
         """
         base_styles = getSampleStyleSheet()
         
@@ -206,49 +230,57 @@ class ReportLabGenerator(IPDFGenerator):
         primary_rgb = style.colors.to_rgb("primary")
         text_rgb = style.colors.to_rgb("text")
         
-        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
         
         return {
             "title": ParagraphStyle(
                 "CustomTitle",
                 parent=base_styles["Heading1"],
-                fontSize=18,
-                textColor=colors.Color(*primary_rgb),
+                fontName="Times-Bold",
+                fontSize=14,
+                textColor=colors.black,
                 alignment=TA_CENTER,
                 spaceAfter=6,
+                leading=17,
             ),
             "heading": ParagraphStyle(
                 "CustomHeading",
                 parent=base_styles["Heading2"],
-                fontSize=12,
-                textColor=colors.Color(*primary_rgb),
-                alignment=TA_CENTER,
-                spaceBefore=12,
-                spaceAfter=6,
+                fontName="Times-Bold",
+                fontSize=10,
+                textColor=colors.black,
+                alignment=TA_LEFT,
+                spaceBefore=8,
+                spaceAfter=4,
+                leading=12,
             ),
             "body": ParagraphStyle(
                 "CustomBody",
                 parent=base_styles["Normal"],
+                fontName="Times-Roman",
                 fontSize=10,
-                textColor=colors.Color(*text_rgb),
+                textColor=colors.black,
                 leading=14,
-                alignment=TA_LEFT,
+                alignment=TA_JUSTIFY,  # Justificado para cláusulas
             ),
             "subtitle": ParagraphStyle(
                 "Subtitle",
                 parent=base_styles["Normal"],
-                fontSize=10,
+                fontName="Times-Roman",
+                fontSize=9,
                 textColor=colors.grey,
                 alignment=TA_CENTER,
-                spaceAfter=12,
+                spaceAfter=8,
+                leading=11,
             ),
             "footer": ParagraphStyle(
                 "Footer",
                 parent=base_styles["Normal"],
-                fontSize=9,
+                fontName="Helvetica",
+                fontSize=8,
                 textColor=colors.grey,
-                alignment=TA_RIGHT,
-                leading=11,
+                alignment=TA_LEFT,
+                leading=10,
             ),
         }
     
@@ -298,45 +330,120 @@ class ReportLabGenerator(IPDFGenerator):
         return elements
     
     def _build_table(self, table: PDFTable, styles: dict) -> list:
-        """Construye una tabla de ReportLab."""
+        """Construye una tabla de ReportLab con estilo profesional."""
         from reportlab.lib.units import mm
         
         elements = []
         
-        # Título de la tabla
+        # Título de la tabla (si existe)
         if table.title:
             title = Paragraph(table.title, styles["heading"])
             elements.append(title)
-            elements.append(Spacer(1, 6))
+            elements.append(Spacer(1, 4))
         
         # Datos de la tabla
         data = [table.headers] + table.rows
         
-        # Crear la tabla con anchos personalizados
-        # 55mm para primera columna, 110mm para segunda
-        col_widths = [55*mm, 110*mm] if len(table.headers) == 2 else None
+        # Anchos de columna profesionales (ajustados según tipo de documento)
+        # Para contratos: 45mm etiqueta, 110mm valor
+        # Para comprobantes: 48mm etiqueta, 110mm valor
+        col_widths = [45*mm, 110*mm] if len(table.headers) == 2 else None
         reportlab_table = Table(data, colWidths=col_widths, hAlign='LEFT')
         
-        # Aplicar estilos a la tabla
+        # Estilo profesional: líneas sutiles, sin fondo en header
         table_style = TableStyle([
-            # Encabezado
-            ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
-            ("BOX", (0, 0), (-1, -1), 0.6, colors.grey),
-            ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.lightgrey),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+            # Tipografía
+            ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
             ("FONTSIZE", (0, 0), (-1, -1), 10),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
             
-            # Alineación: primera columna izquierda, resto izquierda también
+            # Alineación
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            
+            # Líneas sutiles con whitesmoke
+            ("LINEBELOW", (0, 0), (-1, -1), 0.25, colors.whitesmoke),
+            
+            # Padding reducido para look más compacto
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ])
         
         reportlab_table.setStyle(table_style)
         elements.append(reportlab_table)
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
         
         return elements
+    
+    def _draw_header_footer(
+        self,
+        canvas,
+        doc,
+        logo_path: str,
+        universidad_nombre: str,
+    ) -> None:
+        """
+        Dibuja header profesional con logo y footer con número de página.
+        
+        Diseño profesional:
+        - Logo UTN en esquina superior izquierda
+        - Nombre de universidad centrado
+        - Línea gris sutil horizontal
+        - Número de página en footer derecho
+        
+        Args:
+            canvas: Canvas de ReportLab para dibujar
+            doc: Documento SimpleDocTemplate
+            logo_path: Ruta al archivo del logo
+            universidad_nombre: Nombre de la universidad para el header
+        """
+        from reportlab.lib.units import mm
+        import os
+        
+        width, height = A4
+        margin_left = doc.leftMargin
+        margin_right = doc.rightMargin
+        
+        # Dibuja logo UTN en la esquina superior IZQUIERDA
+        if logo_path and os.path.exists(logo_path):
+            try:
+                logo_w = 42 * mm
+                logo_h = 14 * mm
+                x_logo = margin_left
+                y_logo = height - doc.topMargin + 6 * mm
+                canvas.drawImage(
+                    logo_path,
+                    x_logo, y_logo,
+                    width=logo_w,
+                    height=logo_h,
+                    preserveAspectRatio=True,
+                    anchor='nw'
+                )
+            except Exception:
+                # Si falla cargar el logo, continuar sin él
+                pass
+        
+        # Universidad nombre CENTRADO (discreto, profesional)
+        canvas.setFont("Times-Bold", 9)
+        canvas.setFillColor(colors.black)
+        canvas.drawCentredString(width / 2.0, height - doc.topMargin + 10, universidad_nombre or "")
+        
+        # Línea horizontal sutil bajo header
+        canvas.setStrokeColor(colors.lightgrey)
+        canvas.setLineWidth(0.4)  # Más delgada que antes (era 0.5)
+        canvas.line(
+            margin_left,
+            height - doc.topMargin + 4,
+            width - margin_right,
+            height - doc.topMargin + 4
+        )
+        
+        # Footer: número de página (derecha, discreto)
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawRightString(
+            width - margin_right,
+            doc.bottomMargin - 8,
+            f"Página {doc.page}"
+        )

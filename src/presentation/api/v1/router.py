@@ -32,6 +32,7 @@ from src.presentation.dependencies.container import (
 )
 from src.application.dto import (
     ComprobantePostulacionDTO,
+    ComprobanteContratoDTO,
     EstudianteDTO,
     UniversidadDTO,
     CarreraDTO,
