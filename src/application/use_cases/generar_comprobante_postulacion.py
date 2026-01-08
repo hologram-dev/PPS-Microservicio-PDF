@@ -200,10 +200,7 @@ class GenerarComprobantePostulacionUseCase:
             },
         )
         
-        # 1. Sección Header - Universidad
-        document.add_section(self._build_header_universidad(comprobante))
-        
-        # 2. Sección Principal - Tabla compacta con datos clave
+        # 1. Sección Principal - Tabla compacta con datos clave
         document.add_section(self._build_tabla_datos_clave(comprobante))
         
         # 3. Sección Narrativa - Mensaje descriptivo
@@ -214,17 +211,6 @@ class GenerarComprobantePostulacionUseCase:
         
         return document
     
-    def _build_header_universidad(
-        self, 
-        comprobante: ComprobantePostulacionDTO
-    ) -> PDFSection:
-        """Construye el header con nombre de la universidad."""
-        univ = comprobante.universidad
-        
-        return PDFSection(
-            title=univ.nombre, # borre la direccion
-            level=1,
-        )
     
     def _build_tabla_datos_clave(
         self, 
@@ -266,7 +252,7 @@ class GenerarComprobantePostulacionUseCase:
         fecha_post = parse_iso_to_spanish_argentina(post.fecha)
         
         return PDFSection(
-            title=f"COMPROBANTE DE POSTULACIÓN N° {post.numero}",
+            title="",  # Sin título duplicado
             content=f"Fecha de postulación: {fecha_post}",
             level=1,
             elements=[tabla],
@@ -334,9 +320,9 @@ class GenerarComprobantePostulacionUseCase:
         """Construye la sección de firma y footer con información de contacto."""
         univ = comprobante.universidad
         
-        # Construir contenido de firma y footer
+        # Construir contenido de firma y footer (con más espacio arriba)
         contenido = (
-            "\n\n"
+            "\n\n\n\n\n"  # Más saltos de línea para empujar hacia abajo
             "__________________________________\n"
             "Firma del responsable académico / Empresa\n\n"
             "Este comprobante es emitido electrónicamente y puede ser "
@@ -344,7 +330,7 @@ class GenerarComprobantePostulacionUseCase:
         )
         
         return PDFSection(
-            title="",  # Sin título
+            title="",
             content=contenido,
-            level=3,
+            level=2,  # Usar nivel 2 para que use estilo body (negro) en vez de footer (gris)
         )

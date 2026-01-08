@@ -384,11 +384,10 @@ class ReportLabGenerator(IPDFGenerator):
         universidad_nombre: str,
     ) -> None:
         """
-        Dibuja header profesional con logo y footer con número de página.
+        Dibuja header profesional con logo centrado y footer con número de página.
         
         Diseño profesional:
-        - Logo UTN en esquina superior izquierda
-        - Nombre de universidad centrado
+        - Logo UTN centrado en la parte superior
         - Línea gris sutil horizontal
         - Número de página en footer derecho
         
@@ -396,7 +395,7 @@ class ReportLabGenerator(IPDFGenerator):
             canvas: Canvas de ReportLab para dibujar
             doc: Documento SimpleDocTemplate
             logo_path: Ruta al archivo del logo
-            universidad_nombre: Nombre de la universidad para el header
+            universidad_nombre: Nombre de la universidad (no usado, solo para firma de método)
         """
         from reportlab.lib.units import mm
         import os
@@ -405,12 +404,13 @@ class ReportLabGenerator(IPDFGenerator):
         margin_left = doc.leftMargin
         margin_right = doc.rightMargin
         
-        # Dibuja logo UTN en la esquina superior IZQUIERDA
+        # Dibuja logo UTN CENTRADO en la parte superior
         if logo_path and os.path.exists(logo_path):
             try:
                 logo_w = 42 * mm
                 logo_h = 14 * mm
-                x_logo = margin_left
+                # Centrar horizontalmente
+                x_logo = (width - logo_w) / 2.0
                 y_logo = height - doc.topMargin + 6 * mm
                 canvas.drawImage(
                     logo_path,
@@ -424,14 +424,9 @@ class ReportLabGenerator(IPDFGenerator):
                 # Si falla cargar el logo, continuar sin él
                 pass
         
-        # Universidad nombre CENTRADO (discreto, profesional)
-        canvas.setFont("Times-Bold", 9)
-        canvas.setFillColor(colors.black)
-        canvas.drawCentredString(width / 2.0, height - doc.topMargin + 10, universidad_nombre or "")
-        
-        # Línea horizontal sutil bajo header
+        # Línea horizontal sutil bajo header (sin texto de universidad)
         canvas.setStrokeColor(colors.lightgrey)
-        canvas.setLineWidth(0.4)  # Más delgada que antes (era 0.5)
+        canvas.setLineWidth(0.4)
         canvas.line(
             margin_left,
             height - doc.topMargin + 4,
