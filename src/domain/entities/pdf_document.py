@@ -47,11 +47,13 @@ class PDFSection:
     - Título
     - Contenido de texto
     - Elementos anidados (tablas, imágenes, etc.)
+    - Metadata adicional para control de renderizado
     """
     title: str
     content: str = ""
     level: int = 1  # Nivel de encabezado (1-6)
     elements: list[Any] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)  # Metadatos para control de renderizado
     
     def __post_init__(self) -> None:
         """Validaciones del dominio."""

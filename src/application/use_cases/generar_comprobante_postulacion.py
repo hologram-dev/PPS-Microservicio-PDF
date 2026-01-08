@@ -321,12 +321,9 @@ class GenerarComprobantePostulacionUseCase:
         comprobante: ComprobantePostulacionDTO
     ) -> PDFSection:
         """Construye la sección de firma y footer con información de contacto."""
-        univ = comprobante.universidad
-        
-        # Construir contenido de firma y footer (con más espacio arriba)
+        # Simplificar contenido de firma (el espaciador se maneja con metadata)
         contenido = (
-            "\n\n\n\n\n"  # Más saltos de línea para empujar hacia abajo
-            "__________________________________\n"
+            "______________________________\n\n"
             "Firma del responsable académico / Empresa\n\n"
             "Este comprobante es emitido electrónicamente y puede ser "
             "impreso para presentar en la empresa."
@@ -335,5 +332,6 @@ class GenerarComprobantePostulacionUseCase:
         return PDFSection(
             title="",
             content=contenido,
-            level=2,  # Usar nivel 2 para que use estilo body (negro) en vez de footer (gris)
+            level=2,
+            metadata={"push_to_bottom": True}  # Empuja la firma al final de la página
         )

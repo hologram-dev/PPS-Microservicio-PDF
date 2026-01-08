@@ -428,22 +428,26 @@ class GenerarComprobanteContratoUseCase:
         self,
         comprobante: ComprobanteContratoDTO
     ) -> PDFSection:
-        """Construye la sección de firmas."""
+        """Construye la sección de firmas con formato de tabla."""
         est = comprobante.estudiante
         emp = comprobante.empresa
-        univ = comprobante.universidad
         
         nombre_full = f"{est.nombre} {est.apellido}".strip()
-        contacto_uni = univ.correo or ""
         
-        contenido = (
-            "\n\n"
-            "______________________________ ______________________________\n\n"
-            f"Firma y sello - {emp.nombre}  Firma del/de la estudiante: {nombre_full}\n\n"
+        # Crear tabla con dos columnas para las firmas
+        tabla_firmas = PDFTable(
+            headers=["", ""],  # Sin headers visibles
+            rows=[
+                ["______________________________", "______________________________"],
+                [f"Firma y sello\n{emp.nombre}", f"Firma del/de la estudiante\n{nombre_full}"],
+            ],
+            title=None,
         )
         
         return PDFSection(
             title="",
-            content=contenido,
+            content="",
             level=2,
+            elements=[tabla_firmas],
+            metadata={"push_to_bottom": True}  # Indica que debe ir al final de la página
         )

@@ -294,6 +294,12 @@ class ReportLabGenerator(IPDFGenerator):
         """Construye los elementos de una sección."""
         elements = []
         
+        # Si la sección debe empujarse hacia abajo (ej: firmas)
+        if section.metadata.get("push_to_bottom"):
+            # Agregar un espaciador grande para empujar hacia el final de la página
+            # 6.5 inches es aproximadamente el espacio de una página A4 menos márgenes
+            elements.append(Spacer(1, 6.5 * inch))
+        
         # Título de la sección según nivel
         if section.title:
             if section.level == 1:
@@ -347,34 +353,62 @@ class ReportLabGenerator(IPDFGenerator):
             elements.append(title)
             elements.append(Spacer(1, 4))
         
-        # Datos de la tabla
-        data = [table.headers] + table.rows
+        # Detectar si es tabla de firmas (headers vacíos)
+        is_signature_table = all(not h.strip() for h in table.headers)
         
-        # Anchos de columna profesionales (ajustados según tipo de documento)
-        # Para contratos: 45mm etiqueta, 110mm valor
-        # Para comprobantes: 48mm etiqueta, 110mm valor
-        col_widths = [45*mm, 110*mm] if len(table.headers) == 2 else None
-        reportlab_table = Table(data, colWidths=col_widths, hAlign='LEFT')
-        
-        # Estilo profesional: líneas sutiles, sin fondo en header
-        table_style = TableStyle([
-            # Tipografía
-            ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
-            ("FONTSIZE", (0, 0), (-1, -1), 10),
+        if is_signature_table:
+            # Tabla de firmas: solo las filas, sin headers
+            data = table.rows
+            # Anchos iguales para ambas columnas de firma
+            col_widths = [77.5*mm, 77.5*mm] if len(table.headers) == 2 else None
+            reportlab_table = Table(data, colWidths=col_widths, hAlign='CENTER')
             
-            # Alineación
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            # Estilo limpio para firmas: sin líneas, centrado
+            table_style = TableStyle([
+                # Tipografía
+                ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                
+                # Alineación centrada
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                
+                # Sin líneas
+                ("GRID", (0, 0), (-1, -1), 0, colors.white),
+                
+                # Padding generoso para separación
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ])
+        else:
+            # Tabla normal de datos
+            data = [table.headers] + table.rows
             
-            # Líneas sutiles con whitesmoke
-            ("LINEBELOW", (0, 0), (-1, -1), 0.25, colors.whitesmoke),
+            # Anchos de columna profesionales
+            col_widths = [45*mm, 110*mm] if len(table.headers) == 2 else None
+            reportlab_table = Table(data, colWidths=col_widths, hAlign='LEFT')
             
-            # Padding reducido para look más compacto
-            ("LEFTPADDING", (0, 0), (-1, -1), 4),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ])
+            # Estilo profesional: líneas sutiles, sin fondo en header
+            table_style = TableStyle([
+                # Tipografía
+                ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                
+                # Alineación
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                
+                # Líneas sutiles con whitesmoke
+                ("LINEBELOW", (0, 0), (-1, -1), 0.25, colors.whitesmoke),
+                
+                # Padding reducido para look más compacto
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ])
         
         reportlab_table.setStyle(table_style)
         elements.append(reportlab_table)
