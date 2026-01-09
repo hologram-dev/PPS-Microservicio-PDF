@@ -28,7 +28,7 @@ elif [ "$1" == "coverage" ]; then
 # Opción 3: Load testing
 elif [ "$1" == "load" ]; then
     echo "Running load tests with Locust..."
-    locust -f tests/load/locustfile.py --host http://localhost:8001
+    locust -f tests/load/locustfile.py --host http://localhost:8000
 
 # Opción 4: Benchmark
 elif [ "$1" == "benchmark" ]; then

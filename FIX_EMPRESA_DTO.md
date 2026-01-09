@@ -1,45 +1,26 @@
-# 🔧 FIX URGENTE - Error 500 en Endpoint de Contrato
+# ✅ Schema del Contrato Arreglado - Fixes HTTP 422
 
-## ❌ Problema
-```
-TypeError: EmpresaDTO.__init__() got an unexpected keyword argument 'correo'
-```
+## 🔧 Cambios Realizados en `comprobante_contrato_schemas.py`
 
-## 🎯 Solución
+### 1. **UniversidadSchema.codigo_postal**
+- **Antes**: `Optional[str]` (con min_length=1, max_length=10)
+- **Ahora**: `Optional[int]` (con ge=1000, le=9999)
 
-### 1. Agregar campo `correo` a `EmpresaDTO`
+### 2. **EmpresaSchema.codigo_postal**  
+- **Antes**: `Optional[str]` (con min_length=1, max_length=10)
+- **Ahora**: `Optional[int]` (con ge=1000, le=9999)
 
-**Archivo**: `src/application/dto/negocio_global_dtos.py`
+### 3. **PuestoSchema.codigo**
+- **Antes**: `Optional[str]`
+- **Ahora**: `Optional[int]` (con ge=1)
 
-**Línea 86** - Agregar DESPUÉS de `codigo: Optional[int] = None`:
-```python
-correo: Optional[str] = None  # Added to match EmpresaSchema
-```
-
-El DTO `EmpresaDTO` debería quedar así:
-
-```python
-@dataclass
-class EmpresaDTO:
-    """
-    DTO con los datos de la empresa.
-    
-    Campos requeridos: nombre
-    Campos opcionales: direccion, codigo_postal, telefono, codigo, correo
-    """
-    nombre: str
-    direccion: Optional[str] = None
-    codigo_postal: Optional[int] = None
-    telefono: Optional[str] = None
-    codigo: Optional[int] = None
-    correo: Optional[str] = None  # <-- AGREGAR ESTA LÍNEA
-```
+### 4. **PuestoSchema.horas_dedicadas**
+- **Antes**: `int` (ge=0)
+- **Ahora**: `float` (ge=0)
 
 ---
 
-## ✅ Payload Correcto para Contrato
-
-Este payload ahora funcionará:
+## 📝 Payload Correcto (ahora validará ✅)
 
 ```json
 {
@@ -100,27 +81,18 @@ Este payload ahora funcionará:
 }
 ```
 
-### ⚠️ Nota Importante sobre Tipos
-
-- `codigo_postal`: **integer** (5000, no "5000")
-- `codigo` (empresa): **integer** (15847)
-- `numero` (proyecto): **integer** (2026001)
-- `codigo` (puesto): **integer** (1025)
-- `numero` (postulacion): **integer** (450123)
-- `numero` (contrato): **integer** (550234)
-
-Pydantic convierte strings a integers automáticamente, pero es mejor enviar el tipo correcto.
-
 ---
 
-## 🔄 Reiniciar Docker Después del Fix
+## 🔄 IMPORTANTE: Rebuild Docker
+
+FastAPI cachea la app en memoria, necesitas rebuild:
 
 ```bash
-# Reconstruir container con los cambios
+# Detener y reconstruir
 docker compose down
 docker compose up --build -d
 
-# Ver logs
+# Verificar logs
 docker compose logs pdf-service -f
 ```
 
@@ -129,10 +101,15 @@ docker compose logs pdf-service -f
 ## ✅ Verificar que Funciona
 
 ```bash
+# Debe retornar HTTP 200 (no 422)
 curl -X POST http://localhost:8001/api/v1/pdf/generate/comprobante_contrato \
   -H "Content-Type: application/json" \
-  -d @payload_contrato.json \
-  --output test_contrato.pdf
+  -d '{
+    "estudiante": {...},
+    "universidad": {...},
+    ...
+  }' \
+  --output contrato_test.pdf
 ```
 
-Debería retornar HTTP 200 y generar un PDF.
+Deberías ver un PDF generado exitosamente.

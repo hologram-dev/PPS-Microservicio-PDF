@@ -82,6 +82,7 @@ class EmpresaDTO:
     nombre: str
     direccion: Optional[str] = None
     codigo_postal: Optional[int] = None
+    correo: Optional[str] = None
     telefono: Optional[str] = None
     codigo: Optional[int] = None
 

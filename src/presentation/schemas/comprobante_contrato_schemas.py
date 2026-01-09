@@ -33,7 +33,7 @@ class UniversidadSchema(BaseModel):
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre de la universidad")
     direccion: Optional[str] = Field(default=None, min_length=1, max_length=300, description="Dirección de la universidad")
-    codigo_postal: Optional[str] = Field(default=None, min_length=1, max_length=10, description="Código postal de la universidad")
+    codigo_postal: Optional[int] = Field(default=None, ge=1000, le=9999, description="Código postal de la universidad")  # Changed from str to int
     correo: str = Field(..., description="Correo de la universidad")
     telefono: str = Field(..., max_length=18, description="Teléfono de la universidad")
     
@@ -51,7 +51,7 @@ class EmpresaSchema(BaseModel):
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre de la empresa")
     direccion: Optional[str] = Field(default=None, min_length=1, max_length=300, description="Dirección de la empresa")
-    codigo_postal: Optional[str] = Field(default=None, min_length=1, max_length=10, description="Código postal de la empresa")
+    codigo_postal: Optional[int] = Field(default=None, ge=1000, le=9999, description="Código postal de la empresa")  # Changed from str to int
     correo: str = Field(..., description="Correo de la empresa")
     telefono: str = Field(..., max_length=18, description="Teléfono de la empresa")
     codigo: Optional[int] = Field(default=None, description="Código de la empresa")
@@ -98,8 +98,8 @@ class PuestoSchema(BaseModel):
     
     nombre: str = Field(..., min_length=1, max_length=200, description="Nombre del puesto")
     descripcion: Optional[str] = Field(default=None, max_length=200, description="Descripción del puesto")
-    codigo: Optional[str] = Field(default=None, description="Código del puesto")
-    horas_dedicadas: int = Field(..., ge=0, description="Horas dedicadas al puesto")
+    codigo: Optional[int] = Field(default=None, ge=1, description="Código del puesto")  # Changed from str to int
+    horas_dedicadas: float = Field(..., ge=0, description="Horas dedicadas al puesto")  # Changed from int to float
 
 
 class PostulacionSchema(BaseModel):

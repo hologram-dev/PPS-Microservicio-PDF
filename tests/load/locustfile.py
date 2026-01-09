@@ -30,109 +30,114 @@ BASE_URL = "http://localhost:9000"  # ⚠️ Cambiar según tu configuración
 
 PAYLOAD_POSTULACION = {
   "estudiante": {
-    "nombre": "María",
-    "apellido": "González",
-    "dni": "42856123",
-    "email": "maria.gonzalez@gmail.com",
-    "cuil": "27-42856123-8",
-    "fecha_nacimiento": "2001-03-15",
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "dni": "40123456",
+    "email": "juan.perez@mail.universidad.edu.ar",
+    "cuil": "20-40123456-8",
+    "fecha_nacimiento": "2000-05-15",
     "tipo_dni": "DNI"
   },
   "universidad": {
-    "nombre": "Universidad Nacional de Córdoba",
-    "direccion": "Av. Haya de la Torre s/n, Ciudad Universitaria",
-    "codigo_postal": 5000,
-    "correo": "pasantias@unc.edu.ar",
-    "telefono": "+543514334000"
+    "nombre": "Universidad Nacional de La Plata",
+    "direccion": "Avenida 7 #776",
+    "codigo_postal": 1900,
+    "correo": "academica@presi.unlp.edu.ar",
+    "telefono": "+54 221 421-1234"
   },
   "carrera": {
-    "nombre": "Ingeniería en Sistemas de Información",
-    "codigo": "ISI-2020",
-    "plan_estudios": "Plan 2020"
+    "nombre": "Ingeniería en Informática",
+    "codigo": "INF-2020",
+    "descripcion": "Carrera de grado orientada al desarrollo de software y sistemas.",
+    "plan_estudios": "Plan de estudios 2020"
   },
   "empresa": {
-    "nombre": "TechnoSoft Argentina S.A.",
-    "direccion": "Av. Colón 500, Piso 8",
-    "codigo_postal": 5000,
-    "telefono": "+543514238900",
-    "codigo": 15847
+    "nombre": "MercadoLibre S.R.L.",
+    "direccion": "Arieta 4865, Piso 14",
+    "codigo_postal": 1430,
+    "telefono": "+54 11 4640-8000",
+    "codigo": 789
   },
   "proyecto": {
-    "nombre": "Sistema de Gestión de Recursos Humanos",
-    "fecha_inicio": "2026-02-01",
-    "descripcion": "Desarrollo de un sistema integral para la gestión de recursos humanos incluyendo módulos de legajos, asistencia, liquidaciones y capacitación",
-    "numero": 2026001,
-    "estado": "Activo",
-    "fecha_fin": "2026-08-01"
+    "nombre": "Migración a Microservicios - Plataforma de Pagos",
+    "fecha_inicio": "2024-02-01",
+    "descripcion": "Refactorización del monolito principal de pagos hacia una arquitectura de microservicios.",
+    "numero": 101,
+    "estado": "En Progreso",
+    "fecha_fin": "2024-12-15"
   },
   "puesto": {
-    "nombre": "Desarrollador Backend Junior",
-    "descripcion": "Desarrollo de APIs REST con Python/FastAPI y mantenimiento de bases de datos PostgreSQL",
-    "codigo": 1025,
-    "horas_dedicadas": 30
+    "nombre": "Desarrollador Backend Trainee",
+    "descripcion": "Apoyar en el desarrollo de APIs y servicios para el nuevo módulo de pagos.",
+    "codigo": 15,
+    "horas_dedicadas": 20
   },
   "postulacion": {
-    "numero": 450123,
-    "fecha": "2025-12-15T10:30:00-03:00",
+    "numero": 5001,
+    "fecha": "2024-01-20",
     "cantidad_materias_aprobadas": 28,
-    "cantidad_materias_regulares": 3,
-    "estado": "Aprobada"
+    "cantidad_materias_regulares": 5,
+    "estado": "Pendiente"
   }
 }
 
-
 PAYLOAD_CONTRATO = {
   "estudiante": {
-    "nombre": "María",
-    "apellido": "González",
-    "dni": "42856123",
-    "email": "maria.gonzalez@gmail.com"
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "dni": "40123456",
+    "email": "juan.perez@mail.universidad.edu.ar",
+    "cuil": "20-40123456-8",
+    "fecha_nacimiento": "2000-05-15",
+    "tipo_dni": "DNI"
   },
   "universidad": {
-    "nombre": "Universidad Nacional de Córdoba",
-    "direccion": "Av. Haya de la Torre s/n, Ciudad Universitaria",
-    "codigo_postal": "5000",
-    "correo": "pasantias@unc.edu.ar",
-    "telefono": "+543514334000"
+    "nombre": "Universidad Nacional de La Plata",
+    "direccion": "Avenida 7 #776",
+    "codigo_postal": "1900",
+    "correo": "academica@presi.unlp.edu.ar",
+    "telefono": "+54 221 421-1234"
   },
   "carrera": {
-    "nombre": "Ingeniería en Sistemas de Información",
-    "codigo": "ISI-2020",
-    "plan_estudios": "Plan 2020"
+    "nombre": "Ingeniería en Informática",
+    "codigo": "INF-2020",
+    "descripcion": "Carrera de grado orientada al desarrollo de software y sistemas.",
+    "plan_estudios": "Plan de estudios 2020"
   },
   "empresa": {
-    "nombre": "TechnoSoft Argentina S.A.",
-    "direccion": "Av. Colón 500, Piso 8",
-    "codigo_postal": "5000",
-    "telefono": "+543514238900",
-    "codigo": 15847
+    "nombre": "MercadoLibre S.R.L.",
+    "direccion": "Arieta 4865, Piso 14",
+    "codigo_postal": 5550,
+    "correo": "rrhh@mercadolibre.com",
+    "telefono": "+54 11 4640-8000",
+    "codigo": 789
   },
   "proyecto": {
-    "nombre": "Sistema de Gestión de Recursos Humanos",
-    "fecha_inicio": "2026-02-01",
-    "descripcion": "Desarrollo de un sistema integral para la gestión de recursos humanos",
-    "numero": 2026001,
-    "estado": "Activo",
-    "fecha_fin": "2026-08-01"
+    "nombre": "Migración a Microservicios - Plataforma de Pagos",
+    "fecha_inicio": "2024-02-01",
+    "descripcion": "Refactorización del monolito principal de pagos hacia una arquitectura de microservicios.",
+    "numero": 101,
+    "estado": "En Progreso",
+    "fecha_fin": "2024-12-15"
   },
   "puesto": {
-    "nombre": "Desarrollador Backend Junior",
-    "descripcion": "Desarrollo de APIs REST con Python/FastAPI",
-    "codigo": 1025,
-    "horas_dedicadas": 30
+    "nombre": "Desarrollador Backend Trainee",
+    "descripcion": "Apoyar en el desarrollo de APIs y servicios para el nuevo módulo de pagos.",
+    "codigo": "12341",
+    "horas_dedicadas": 20
   },
   "postulacion": {
-    "numero": 450123,
-    "fecha": "2025-12-15T10:30:00-03:00",
+    "numero": 5001,
+    "fecha": "2024-01-20",
     "cantidad_materias_aprobadas": 28,
-    "cantidad_materias_regulares": 3,
+    "cantidad_materias_regulares": 5,
     "estado": "Aprobada"
   },
   "contrato": {
-    "numero": 550234,
-    "fecha_inicio": "2026-02-01",
-    "fecha_fin": "2026-08-01",
-    "fecha_emision": "2026-01-07",
+    "numero": 245,
+    "fecha_inicio": "2024-03-01",
+    "fecha_fin": "2024-12-31",
+    "fecha_emision": "2024-02-25",
     "estado": "Activo"
   }
 }
