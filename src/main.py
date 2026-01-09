@@ -17,6 +17,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from src.domain.exceptions import DomainException
 from src.infrastructure.config import get_settings
@@ -130,6 +132,24 @@ Este microservicio implementa Clean Architecture:
         return JSONResponse(
             status_code=status_code,
             content=exc.to_dict(),
+        )
+    
+    @app.exception_handler(RateLimitExceeded)
+    async def rate_limit_handler(
+        request: Request,
+        exc: RateLimitExceeded
+    ) -> JSONResponse:
+        """
+        Maneja excepciones de rate limiting.
+        
+        Retorna HTTP 429 cuando se excede el límite de requests.
+        """
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "Rate limit exceeded",
+                "message": "Demasiados requests. Por favor intente nuevamente más tarde.",
+            },
         )
     
     # ================================

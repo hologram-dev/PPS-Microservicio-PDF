@@ -15,9 +15,12 @@ Estructura típica de un endpoint:
 6. Retorna response HTTP
 """
 
+import asyncio
 from io import BytesIO
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from fastapi.responses import StreamingResponse
 
 from src.presentation.schemas.comprobante_postulacion_schemas import (
@@ -45,6 +48,11 @@ from src.application.dto import (
 
 router = APIRouter(prefix="/pdf", tags=["PDF"])
 
+# ================================
+# Rate Limiter Configuration
+# ================================
+limiter = Limiter(key_func=get_remote_address)
+
 
 # ================================
 # Endpoints
@@ -64,13 +72,18 @@ router = APIRouter(prefix="/pdf", tags=["PDF"])
         400: {
             "description": "Datos inválidos en el request",
         },
+        429: {
+            "description": "Demasiados requests - Rate limit excedido",
+        },
         500: {
             "description": "Error al generar el PDF",
         },
     },
 )
+@limiter.limit("100/minute")
 async def generar_comprobante_postulacion(
-    request: ComprobantePostulacionRequest,
+    request: Request,
+    data: ComprobantePostulacionRequest,
     use_case=Depends(get_generar_comprobante_postulacion_use_case),
 ):
     """
@@ -92,64 +105,22 @@ async def generar_comprobante_postulacion(
     Returns:
         StreamingResponse con el PDF generado
     """
-    # 1. Convertir schemas Pydantic → DTOs de aplicación
-    # Solo pasamos campos requeridos explícitamente
-    # Los campos opcionales usan los defaults de los DTOs
+    # 1. Convertir schemas Pydantic → DTOs de aplicación usando model_dump()
     comprobante_dto = ComprobantePostulacionDTO(
-        estudiante=EstudianteDTO(
-            nombre=request.estudiante.nombre,
-            apellido=request.estudiante.apellido,
-            dni=request.estudiante.dni,
-            email=request.estudiante.email,
-            cuil=request.estudiante.cuil,
-            fecha_nacimiento=request.estudiante.fecha_nacimiento,
-            tipo_dni=request.estudiante.tipo_dni,
-        ),
-        universidad=UniversidadDTO(
-            nombre=request.universidad.nombre,
-            direccion=request.universidad.direccion,
-            codigo_postal=request.universidad.codigo_postal,
-            correo=request.universidad.correo,
-            telefono=request.universidad.telefono,
-        ),
-        carrera=CarreraDTO(
-            nombre=request.carrera.nombre,
-            codigo=request.carrera.codigo,
-            descripcion=request.carrera.descripcion,
-            plan_estudios=request.carrera.plan_estudios,
-        ),
-        empresa=EmpresaDTO(
-            nombre=request.empresa.nombre,
-            direccion=request.empresa.direccion,
-            codigo_postal=request.empresa.codigo_postal,
-            telefono=request.empresa.telefono,
-            codigo=request.empresa.codigo,
-        ),
-        proyecto=ProyectoDTO(
-            nombre=request.proyecto.nombre,
-            fecha_inicio=request.proyecto.fecha_inicio,
-            descripcion=request.proyecto.descripcion,
-            numero=request.proyecto.numero,
-            estado=request.proyecto.estado,
-            fecha_fin=request.proyecto.fecha_fin,
-        ),
-        puesto=PuestoDTO(
-            nombre=request.puesto.nombre,
-            descripcion=request.puesto.descripcion,
-            codigo=request.puesto.codigo,
-            horas_dedicadas=request.puesto.horas_dedicadas,
-        ),
-        postulacion=PostulacionDTO(
-            numero=request.postulacion.numero,
-            fecha=request.postulacion.fecha,
-            cantidad_materias_aprobadas=request.postulacion.cantidad_materias_aprobadas,
-            cantidad_materias_regulares=request.postulacion.cantidad_materias_regulares,
-            estado=request.postulacion.estado,
-        ),
+        estudiante=EstudianteDTO(**data.estudiante.model_dump()),
+        universidad=UniversidadDTO(**data.universidad.model_dump()),
+        carrera=CarreraDTO(**data.carrera.model_dump()),
+        empresa=EmpresaDTO(**data.empresa.model_dump()),
+        proyecto=ProyectoDTO(**data.proyecto.model_dump()),
+        puesto=PuestoDTO(**data.puesto.model_dump()),
+        postulacion=PostulacionDTO(**data.postulacion.model_dump()),
     )
     
-    # 2. Ejecutar el use case para generar el PDF
-    result = use_case.execute(comprobante_dto)
+    # 2. Ejecutar el use case para generar el PDF (async con thread pool)
+    result = await asyncio.to_thread(
+        use_case.execute,
+        comprobante_dto
+    )
     
     # 3. Crear stream con el contenido del PDF
     pdf_stream = BytesIO(result.content)
@@ -176,13 +147,18 @@ async def generar_comprobante_postulacion(
         400: {
             "description": "Datos inválidos en el request",
         },
+        429: {
+            "description": "Demasiados requests - Rate limit excedido",
+        },
         500: {
             "description": "Error al generar el PDF",
         },
     },
 )
+@limiter.limit("100/minute")
 async def generar_comprobante_contrato(
-    request: ComprobanteContratoRequest,
+    request: Request,
+    data: ComprobanteContratoRequest,
     use_case=Depends(get_generar_comprobante_contrato_use_case),
 ):
     """
@@ -204,69 +180,23 @@ async def generar_comprobante_contrato(
     Returns:
         StreamingResponse con el PDF generado
     """
-    # 1. Convertir schemas Pydantic → DTOs de aplicación
+    # 1. Convertir schemas Pydantic → DTOs de aplicación usando model_dump()
     comprobante_dto = ComprobanteContratoDTO(
-        estudiante=EstudianteDTO(
-            nombre=request.estudiante.nombre,
-            apellido=request.estudiante.apellido,
-            email=request.estudiante.email,
-            dni=request.estudiante.dni,
-            cuil=request.estudiante.cuil,
-            fecha_nacimiento=request.estudiante.fecha_nacimiento,
-            tipo_dni=request.estudiante.tipo_dni,
-        ),
-        universidad=UniversidadDTO(
-            nombre=request.universidad.nombre,
-            direccion=request.universidad.direccion,
-            codigo_postal=request.universidad.codigo_postal,
-            correo=request.universidad.correo,
-            telefono=request.universidad.telefono,
-        ),
-        carrera=CarreraDTO(
-            nombre=request.carrera.nombre,
-            codigo=request.carrera.codigo,
-            descripcion=request.carrera.descripcion,
-            plan_estudios=request.carrera.plan_estudios,
-        ),
-        empresa=EmpresaDTO(
-            nombre=request.empresa.nombre,
-            direccion=request.empresa.direccion,
-            codigo_postal=request.empresa.codigo_postal,
-            telefono=request.empresa.telefono,
-            codigo=request.empresa.codigo,
-        ),
-        proyecto=ProyectoDTO(
-            nombre=request.proyecto.nombre,
-            descripcion=request.proyecto.descripcion,
-            numero=request.proyecto.numero,
-            estado=request.proyecto.estado,
-            fecha_inicio=request.proyecto.fecha_inicio,
-            fecha_fin=request.proyecto.fecha_fin,
-        ),
-        puesto=PuestoDTO(
-            nombre=request.puesto.nombre,
-            descripcion=request.puesto.descripcion,
-            codigo=request.puesto.codigo,
-            horas_dedicadas=request.puesto.horas_dedicadas,
-        ),
-        postulacion=PostulacionDTO(
-            numero=request.postulacion.numero,
-            fecha=request.postulacion.fecha,
-            estado=request.postulacion.estado,
-            cantidad_materias_aprobadas=request.postulacion.cantidad_materias_aprobadas,
-            cantidad_materias_regulares=request.postulacion.cantidad_materias_regulares,
-        ),
-        contrato=ContratoDTO(
-            numero=request.contrato.numero,
-            fecha_inicio=request.contrato.fecha_inicio,
-            fecha_fin=request.contrato.fecha_fin,
-            fecha_emision=request.contrato.fecha_emision,
-            estado=request.contrato.estado,
-        ),
+        estudiante=EstudianteDTO(**data.estudiante.model_dump()),
+        universidad=UniversidadDTO(**data.universidad.model_dump()),
+        carrera=CarreraDTO(**data.carrera.model_dump()),
+        empresa=EmpresaDTO(**data.empresa.model_dump()),
+        proyecto=ProyectoDTO(**data.proyecto.model_dump()),
+        puesto=PuestoDTO(**data.puesto.model_dump()),
+        postulacion=PostulacionDTO(**data.postulacion.model_dump()),
+        contrato=ContratoDTO(**data.contrato.model_dump()),
     )
     
-    # 2. Ejecutar el use case para generar el PDF
-    result = use_case.execute(comprobante_dto)
+    # 2. Ejecutar el use case para generar el PDF (async con thread pool)
+    result = await asyncio.to_thread(
+        use_case.execute,
+        comprobante_dto
+    )
     
     # 3. Crear stream con el contenido del PDF
     pdf_stream = BytesIO(result.content)
@@ -282,7 +212,8 @@ async def generar_comprobante_contrato(
 
 
 @router.get("/health")
-async def health_check():
+@limiter.limit("200/minute")
+async def health_check(request: Request):
     """
     Health check del servicio de PDF.
     

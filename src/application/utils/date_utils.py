@@ -9,6 +9,7 @@ con timezone de Argentina (UTC-3).
 """
 
 from datetime import datetime, timezone, timedelta
+from functools import lru_cache
 
 
 MESES_ES = [
@@ -17,6 +18,7 @@ MESES_ES = [
 ]
 
 
+@lru_cache(maxsize=128)
 def parse_iso_to_spanish_argentina(iso_str: str | None) -> str:
     """
     Parsea fecha/datetime ISO a formato español timezone Argentina (UTC-3).

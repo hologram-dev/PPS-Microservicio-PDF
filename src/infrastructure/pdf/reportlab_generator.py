@@ -14,8 +14,10 @@ Decisiones técnicas:
 - Se usa ReportLab's Platypus para layout de alto nivel
 - Los estilos del dominio se mapean a estilos de ReportLab
 - El PDF se genera en memoria (BytesIO) para eficiencia
+- Los estilos se cachean con @lru_cache para mejor performance
 """
 
+from functools import lru_cache
 from io import BytesIO
 from typing import BinaryIO
 
@@ -224,11 +226,13 @@ class ReportLabGenerator(IPDFGenerator):
         
         return elements
     
+    @lru_cache(maxsize=16)
     def _create_styles(self, style: PDFStyle) -> dict:
         """
         Crea los estilos de Paragraph con tipografía profesional.
         
         Usa Times-Roman/Times-Bold para un look más formal y profesional.
+        Los estilos se cachean en memoria para evitar recrearlos en cada request.
         """
         base_styles = getSampleStyleSheet()
         

@@ -29,6 +29,7 @@ services:
       - PDF_DEFAULT_PAGE_SIZE=${PDF_DEFAULT_PAGE_SIZE:-A4}
       - PDF_DEFAULT_MARGIN=${PDF_DEFAULT_MARGIN:-72}
       - PDF_TEMP_DIR=/tmp/pdf_exports
+      - WORKERS=${WORKERS:-5}
     volumes:
       # Mount for development (hot reload)
       - ./src:/app/src:ro

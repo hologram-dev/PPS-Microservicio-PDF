@@ -1,0 +1,22 @@
+# Test Dependencies
+# =================
+
+# Instalación:
+#   pip install -r requirements-test.txt
+
+# Testing Framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# HTTP Testing
+httpx>=0.25.0
+
+# Load Testing
+locust>=2.17.0
+
+# Benchmarking
+memory-profiler>=0.61.0
+
+# Coverage Reports
+coverage[toml]>=7.3.0
