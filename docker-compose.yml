@@ -1,85 +1,29 @@
-# ================================
-# PDF Export Microservice
-# Docker Compose Configuration
-# ================================
-
 version: '3.8'
 
 services:
-  # -----------------------------
-  # PDF Microservice
-  # -----------------------------
   pdf-service:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
     container_name: pdf-export-service
     restart: unless-stopped
     ports:
-      - "${PORT:-8001}:8000"
+      - "${PDF_PORT_EXTERNAL:-8001}:8000"
     environment:
-      - APP_NAME=${APP_NAME:-PDF Export Microservice}
-      - APP_ENV=${APP_ENV:-development}
+      - APP_NAME=PPS-PDF-Service
+      - APP_ENV=${APP_ENV:-production}
       - DEBUG=${DEBUG:-false}
-      - HOST=0.0.0.0
       - PORT=8000
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
-      - PDF_DEFAULT_PAGE_SIZE=${PDF_DEFAULT_PAGE_SIZE:-A4}
-      - PDF_DEFAULT_MARGIN=${PDF_DEFAULT_MARGIN:-72}
       - PDF_TEMP_DIR=/tmp/pdf_exports
-      - WORKERS=${WORKERS:-5}
+      - WEB_CONCURRENCY=${WORKERS:-2}
     volumes:
-      # Mount for development (hot reload)
-      - ./src:/app/src:ro
-      # Persistent volume for generated PDFs (optional)
       - pdf_output:/tmp/pdf_exports
-    healthcheck:
-      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
     networks:
-      - pdf-network
+      - pps-network
 
-  # -----------------------------
-  # Development Service Override
-  # -----------------------------
-  pdf-service-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: pdf-export-service-dev
-    ports:
-      - "${PORT:-8001}:8000"
-    environment:
-      - APP_ENV=development
-      - DEBUG=true
-      - LOG_LEVEL=DEBUG
-    volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-    networks:
-      - pdf-network
-    profiles:
-      - dev
-
-# -----------------------------
-# Networks
-# -----------------------------
 networks:
-  pdf-network:
-    driver: bridge
-    name: pdf-microservice-network
+  pps-network:
+    external: true
 
-# -----------------------------
-# Volumes
-# -----------------------------
 volumes:
   pdf_output:
-    driver: local
-    name: pdf-export-output

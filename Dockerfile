@@ -1,73 +1,60 @@
-# ================================
-# PDF Export Microservice
-# Multi-stage Dockerfile
-# ================================
-
-# -----------------------------
 # Stage 1: Builder
-# -----------------------------
 FROM python:3.11-slim as builder
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-# Install build dependencies
+# Dependencias de compilación para paquetes de Python que lo requieran
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-# -----------------------------
 # Stage 2: Production
-# -----------------------------
 FROM python:3.11-slim as production
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     APP_ENV=production
 
-# Create non-root user for security
+# Usuario de seguridad
 RUN groupadd --gid 1000 appgroup \
     && useradd --uid 1000 --gid appgroup --shell /bin/bash --create-home appuser
 
 WORKDIR /app
 
-# Install runtime dependencies (fonts for PDF generation)
+# Instalamos fuentes esenciales para ReportLab y utilidades de red para el healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-liberation \
     fonts-dejavu-core \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy wheels from builder and install
+# Instalamos las librerías desde los wheels del stage anterior
 COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
-# Copy application code
+# Copiamos el código fuente con los permisos correctos
 COPY --chown=appuser:appgroup . .
 
-# Create temp directory for PDF generation
+# Directorio temporal para los archivos PDF
 RUN mkdir -p /tmp/pdf_exports && chown appuser:appgroup /tmp/pdf_exports
 
-# Switch to non-root user
 USER appuser
 
-# Expose port
 EXPOSE 8000
 
-# Health check
+# Healthcheck usando curl (más estándar)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Comando de arranque (usando el path correcto del entrypoint)
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
